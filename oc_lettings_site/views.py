@@ -6,6 +6,9 @@ custom error pages.
 """
 from django.shortcuts import render
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 def index(request):
     """
@@ -31,6 +34,7 @@ def error_404(request, exception):
     Returns:
         HttpResponse: Rendered 404 error template.
     """
+    logger.warning('404 error: %s', request.path)
     return render(request, '404.html', status=404)
 
 
@@ -44,4 +48,5 @@ def error_500(request):
     Returns:
         HttpResponse: Rendered 500 error template.
     """
+    logger.error('500 error at: %s', request.path)
     return render(request, '500.html', status=500)

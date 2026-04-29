@@ -11,3 +11,6 @@ venv
 
 # Coverage configurations
 .coverage
+
+# Environment variables
+.env

@@ -6,7 +6,11 @@ and detailed letting pages.
 """
 
 from django.shortcuts import render
+import logging
+
 from .models import Letting
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -35,9 +39,14 @@ def letting(request, letting_id):
     Returns:
         HttpResponse: Rendered template displaying letting details.
     """
-    letting = Letting.objects.get(id=letting_id)
-    context = {
-        'title': letting.title,
-        'address': letting.address,
-    }
+    try:
+        letting = Letting.objects.get(id=letting_id)
+        context = {
+            'title': letting.title,
+            'address': letting.address,
+        }
+    except Letting.DoesNotExist:
+        logger.error('Letting not found: id=%s', letting_id)
+        raise
+    logger.info('Letting detail accessed: id=%s', letting_id)
     return render(request, 'lettings/letting.html', context)

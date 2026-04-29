@@ -6,7 +6,11 @@ and individual user profiles.
 """
 
 from django.shortcuts import render
+import logging
+
 from .models import Profile
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -35,6 +39,11 @@ def profile(request, username):
     Returns:
         HttpResponse: Rendered template displaying profile details.
     """
-    profile = Profile.objects.get(user__username=username)
-    context = {'profile': profile}
+    try:
+        profile = Profile.objects.get(user__username=username)
+        context = {'profile': profile}
+    except Profile.DoesNotExist:
+        logger.error('Profile not found: username=%s', username)
+        raise
+    logger.info('Profile detail accessed: username=%s', profile.user.username)
     return render(request, 'profiles/profile.html', context)
