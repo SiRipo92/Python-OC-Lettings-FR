@@ -1,3 +1,8 @@
+"""
+URL configuration for the lettings application.
+
+Defines route patterns and maps them to corresponding view functions.
+"""
 from django.urls import path
 
 from . import views
