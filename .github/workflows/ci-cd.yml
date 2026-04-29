@@ -50,6 +50,8 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/oc-lettings:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/oc-lettings:latest
+          build-args: |
+              SECRET_KEY=${{ secrets.SECRET_KEY }}
 
   deploy:
     runs-on: ubuntu-latest
