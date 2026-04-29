@@ -1,4 +1,5 @@
 ## Résumé
+![CI/CD Pipeline](https://github.com/SiRipo92/Python-OC-Lettings-FR/actions/workflows/ci-cd.yml/badge.svg)
 
 Site web d'Orange County Lettings
 
@@ -124,3 +125,75 @@ http://localhost:8000/lettings/999/
 ```
 
 L'erreur doit apparaître dans votre dashboard Sentry sous quelques secondes.
+
+## Déploiement
+
+### Fonctionnement général
+
+Le déploiement est entièrement automatisé via un pipeline CI/CD GitHub Actions. Le pipeline fonctionne comme suit :
+
+- **Toutes les branches** : à chaque push, le pipeline exécute le linting (`flake8`) et les tests (`pytest`) avec vérification que la couverture de test est supérieure à 80%.
+- **Branche master uniquement** : si les tests passent, une image Docker est construite et poussée sur Docker Hub avec deux tags — le hash du commit et `latest`. Si la conteneurisation réussit, le déploiement sur Render est déclenché automatiquement via un webhook.
+
+### Prérequis pour le déploiement
+
+Vous aurez besoin des comptes et accès suivants :
+
+- **GitHub** : repository avec accès en écriture
+- **Docker Hub** : compte avec un repository public `oc-lettings`
+- **Render** : compte avec un Web Service configuré pour utiliser l'image Docker Hub
+- **Sentry** : projet Django configuré
+
+### Configuration requise
+
+#### GitHub Secrets
+
+Ajoutez ces secrets dans votre repository GitHub (Settings → Secrets and variables → Actions) :
+
+| Secret | Description |
+|--------|-------------|
+| `SECRET_KEY` | Clé secrète Django |
+| `SENTRY_DSN` | DSN de votre projet Sentry |
+| `DOCKERHUB_USERNAME` | Votre nom d'utilisateur Docker Hub |
+| `DOCKERHUB_TOKEN` | Token d'accès Docker Hub (Read & Write) |
+| `RENDER_DEPLOY_HOOK_URL` | URL du deploy hook Render (voir ci-dessous) |
+
+#### Render
+
+1. Créez un compte sur [render.com](https://render.com)
+2. Créez un nouveau **Web Service** → **Existing Image**
+3. Entrez l'URL de l'image : `docker.io/YOUR_DOCKERHUB_USERNAME/oc-lettings:latest`
+4. Ajoutez les variables d'environnement suivantes dans Render :
+   - `SECRET_KEY` : votre clé secrète Django
+   - `DEBUG` : `False`
+   - `ALLOWED_HOSTS` : votre URL Render (ex: `your-app.onrender.com`)
+   - `SENTRY_DSN` : votre DSN Sentry
+5. **Désactivez le déploiement automatique** dans les paramètres Render — les déploiements sont déclenchés uniquement par GitHub Actions
+6. Dans Settings → **Deploy Hook**, copiez l'URL et ajoutez-la comme secret `RENDER_DEPLOY_HOOK_URL` dans GitHub
+
+### Étapes pour déployer
+
+1. Créez une branche feature et faites vos modifications
+2. Poussez la branche — le pipeline exécute les tests automatiquement
+3. Ouvrez une Pull Request et mergez dans `master`
+4. Le pipeline se déclenche automatiquement :
+   - Tests et linting
+   - Build et push de l'image Docker sur Docker Hub
+   - Déclenchement du déploiement sur Render
+5. Vérifiez le déploiement sur votre URL Render
+
+### Récupérer et lancer l'image Docker localement
+
+Pour récupérer et lancer l'image depuis Docker Hub sans cloner le repository :
+
+```bash
+docker pull YOUR_DOCKERHUB_USERNAME/oc-lettings:latest
+docker run -p 8000:8000 \
+  -e SECRET_KEY='your-secret-key' \
+  -e DEBUG=True \
+  -e ALLOWED_HOSTS=localhost,127.0.0.1 \
+  -e SENTRY_DSN=your-sentry-dsn \
+  YOUR_DOCKERHUB_USERNAME/oc-lettings:latest
+```
+
+Puis ouvrez `http://localhost:8000` dans votre navigateur.
