@@ -1,8 +1,16 @@
+"""
+Django command-line utility for administrative tasks.
+
+This is the entry point for running management commands such as
+runserver, migrate, and test.
+"""
+
 import os
 import sys
 
 
 def main():
+    """Set the Django settings module and execute management commands."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'oc_lettings_site.settings')
     try:
         from django.core.management import execute_from_command_line
