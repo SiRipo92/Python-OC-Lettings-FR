@@ -7,7 +7,11 @@ static files, and authentication for the Holiday Homes application.
 
 import os
 
+from decouple import config
 from pathlib import Path
+
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'fp$9^593hsriajg$_%=5trot9g!1qa@ew(o-1#@=&4%=hp46(s'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -121,3 +125,48 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static",]
+
+# Logging configuration
+LOGGING = {
+  'version': 1,
+  'disable_existing_loggers': False,
+  'handlers': {
+      'console': {
+          'class': 'logging.StreamHandler',
+      },
+  },
+  'root': {
+      'handlers': ['console'],
+      'level': 'INFO',
+  },
+  'loggers': {
+      'django': {
+          'handlers': ['console'],
+          'level': 'INFO',
+          'propagate': False,
+      },
+      'lettings': {
+          'handlers': ['console'],
+          'level': 'INFO',
+          'propagate': False,
+      },
+      'profiles': {
+          'handlers': ['console'],
+          'level': 'INFO',
+          'propagate': False,
+      },
+      'oc_lettings_site': {
+          'handlers': ['console'],
+          'level': 'WARNING',
+          'propagate': False,
+      },
+  },
+}
+
+# Sentry Initialization
+sentry_sdk.init(
+      dsn=config('SENTRY_DSN'),
+      integrations=[DjangoIntegration()],
+      traces_sample_rate=1.0,
+      send_default_pii=True
+  )
