@@ -1,3 +1,10 @@
+"""
+Django settings for the oc_lettings_site project.
+
+Configures database, installed apps, middleware, templates,
+static files, and authentication for the Holiday Homes application.
+"""
+
 import os
 
 from pathlib import Path

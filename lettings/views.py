@@ -1,15 +1,40 @@
+"""
+Views for the lettings application.
+
+Handles HTTP requests and returns rendered templates for letting listings
+and detailed letting pages.
+"""
+
 from django.shortcuts import render
 from .models import Letting
 
+
 def index(request):
-    """Display page for Lettings (lists view)"""
+    """
+    Render a list view of all lettings.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request.
+
+    Returns:
+        HttpResponse: Rendered template displaying all lettings.
+    """
     lettings_list = Letting.objects.all()
     context = {'lettings_list': lettings_list}
     return render(request, 'lettings/index.html', context)
 
 
 def letting(request, letting_id):
-    """Single page display for a Letting Item (detailed view)"""
+    """
+    Render a detailed view for a specific letting.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request.
+        letting_id (int): Unique identifier of the letting.
+
+    Returns:
+        HttpResponse: Rendered template displaying letting details.
+    """
     letting = Letting.objects.get(id=letting_id)
     context = {
         'title': letting.title,
