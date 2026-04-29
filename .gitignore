@@ -8,3 +8,6 @@ venv
 
 # Local shell configuration
 .zshrc
+
+# Coverage configurations
+.coverage
