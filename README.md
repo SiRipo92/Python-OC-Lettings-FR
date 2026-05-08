@@ -10,7 +10,7 @@ Site web d'Orange County Lettings
 - Compte GitHub avec accès en lecture à ce repository
 - Git CLI
 - SQLite3 CLI
-- Interpréteur Python, version 3.6 ou supérieure
+- Interpréteur Python, version 3.11 ou supérieure
 
 Dans le reste de la documentation sur le développement local, il est supposé que la commande `python` de votre OS shell exécute l'interpréteur Python ci-dessus (à moins qu'un environnement virtuel ne soit activé).
 
@@ -19,7 +19,7 @@ Dans le reste de la documentation sur le développement local, il est supposé q
 #### Cloner le repository
 
 - `cd /path/to/put/project/in`
-- `git clone https://github.com/OpenClassrooms-Student-Center/Python-OC-Lettings-FR.git`
+- `git clone https://github.com/SiRipo92/Python-OC-Lettings-FR.git`
 
 #### Créer l'environnement virtuel
 
@@ -29,7 +29,7 @@ Dans le reste de la documentation sur le développement local, il est supposé q
 - Activer l'environnement `source .venv/bin/activate`
 - Confirmer que la commande `python` exécute l'interpréteur Python dans l'environnement virtuel
 `which python`
-- Confirmer que la version de l'interpréteur Python est la version 3.6 ou supérieure `python --version`
+- Confirmer que la version de l'interpréteur Python est la version 3.11 ou supérieure `python --version`
 - Confirmer que la commande `pip` exécute l'exécutable pip dans l'environnement virtuel, `which pip`
 - Pour désactiver l'environnement, `deactivate`
 
@@ -60,9 +60,9 @@ Dans le reste de la documentation sur le développement local, il est supposé q
 - Ouvrir une session shell `sqlite3`
 - Se connecter à la base de données `.open oc-lettings-site.sqlite3`
 - Afficher les tables dans la base de données `.tables`
-- Afficher les colonnes dans le tableau des profils, `pragma table_info(oc_lettings_site_profile);`
+- Afficher les colonnes dans le tableau des profils, `pragma table_info(profiles_profile);`
 - Lancer une requête sur la table des profils, `select user_id, favorite_city from
-  oc_lettings_site_profile where favorite_city like 'B%';`
+  profiles_profile where favorite_city like 'B%';`
 - `.quit` pour quitter
 
 #### Panel d'administration
@@ -162,7 +162,7 @@ Ajoutez ces secrets dans votre repository GitHub (Settings → Secrets and varia
 
 1. Créez un compte sur [render.com](https://render.com)
 2. Créez un nouveau **Web Service** → **Existing Image**
-3. Entrez l'URL de l'image : `docker.io/YOUR_DOCKERHUB_USERNAME/oc-lettings:latest`
+3. Entrez l'URL de l'image : `docker.io/siripo92/oc-lettings:latest`
 4. Ajoutez les variables d'environnement suivantes dans Render :
    - `SECRET_KEY` : votre clé secrète Django
    - `DEBUG` : `False`
@@ -187,13 +187,13 @@ Ajoutez ces secrets dans votre repository GitHub (Settings → Secrets and varia
 Pour récupérer et lancer l'image depuis Docker Hub sans cloner le repository :
 
 ```bash
-docker pull YOUR_DOCKERHUB_USERNAME/oc-lettings:latest
+docker pull siripo92/oc-lettings:latest
 docker run -p 8000:8000 \
   -e SECRET_KEY='your-secret-key' \
   -e DEBUG=True \
   -e ALLOWED_HOSTS=localhost,127.0.0.1 \
   -e SENTRY_DSN=your-sentry-dsn \
-  YOUR_DOCKERHUB_USERNAME/oc-lettings:latest
+  siripo92/oc-lettings:latest
 ```
 
 Puis ouvrez `http://localhost:8000` dans votre navigateur.
