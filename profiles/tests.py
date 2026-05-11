@@ -55,6 +55,24 @@ def test_profiles_list_view(client):
 
 
 @pytest.mark.django_db
+def test_profiles_list_view_context_contains_all_profiles(client):
+    """
+    The list view's context exposes every Profile under 'profiles_list'.
+    Confirms data is actually passed to the template, not just that the
+    page renders an empty shell.
+    """
+    user1 = User.objects.create_user(username='alice', password='x')
+    user2 = User.objects.create_user(username='bob', password='x')
+    Profile.objects.create(user=user1, favorite_city='Paris')
+    Profile.objects.create(user=user2, favorite_city='Rome')
+    response = client.get('/profiles/')
+    assert 'profiles_list' in response.context
+    assert response.context['profiles_list'].count() == 2
+    assert b'alice' in response.content
+    assert b'bob' in response.content
+
+
+@pytest.mark.django_db
 def test_profile_detail_view(client):
     """
     GET /profiles/<username>/ returns 200, renders profile.html, and displays
@@ -69,3 +87,28 @@ def test_profile_detail_view(client):
     assert 'profiles/profile.html' in [t.name for t in response.templates]
     assert b'CrazyBananaMan' in response.content
     assert b'Athens' in response.content
+
+
+@pytest.mark.django_db
+def test_profile_detail_view_context_object(client):
+    """
+    Detail view exposes 'profile' in the template context and it points to
+    the correct Profile instance. Guards against the lookup silently returning
+    the wrong record after future refactors.
+    """
+    user = User.objects.create_user(username='zara', password='x')
+    profile = Profile.objects.create(user=user, favorite_city='Lima')
+    response = client.get(f'/profiles/{user.username}/')
+    assert response.context['profile'] == profile
+    assert response.context['profile'].favorite_city == 'Lima'
+
+
+@pytest.mark.django_db
+def test_profile_detail_view_unknown_username_raises(client):
+    """
+    Requesting a profile for a username that doesn't exist exercises the
+    Profile.DoesNotExist branch of the view (lines 45-47). The view re-raises
+    after logging, which Django translates into a 500 response in test mode.
+    """
+    with pytest.raises(Profile.DoesNotExist):
+        client.get('/profiles/no-such-user/')
