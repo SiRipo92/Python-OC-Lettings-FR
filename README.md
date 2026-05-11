@@ -184,16 +184,58 @@ Ajoutez ces secrets dans votre repository GitHub (Settings → Secrets and varia
 
 ### Récupérer et lancer l'image Docker localement
 
-Pour récupérer et lancer l'image depuis Docker Hub sans cloner le repository :
+L'image est construite pour `linux/amd64`. Sur un Mac Apple Silicon (M1/M2/M3),
+elle tourne via émulation — c'est fonctionnel mais plus lent ; passez
+`--platform linux/amd64` (ou utilisez le `docker-compose.yml` ci-dessous, qui le
+fait pour vous) pour faire taire l'avertissement.
+
+Important : ouvrez le site sur `http://localhost:8000`, **pas** `http://0.0.0.0:8000`.
+Django rejette l'en-tête `Host: 0.0.0.0:8000` sauf si `0.0.0.0` est explicitement
+dans `ALLOWED_HOSTS`.
+
+#### Option 1 — `docker run` (une seule commande)
+
+Préparez d'abord un fichier `.env` à la racine du projet (voir la section
+[Variables d'environnement](#variables-denvironnement)). Le `SENTRY_DSN` doit
+être un vrai DSN Sentry (`https://…`) ou laissé vide — une chaîne fictive comme
+`your-sentry-dsn` fait planter le worker.
 
 ```bash
 docker pull siripo92/oc-lettings:latest
-docker run -p 8000:8000 \
-  -e SECRET_KEY='your-secret-key' \
-  -e DEBUG=True \
-  -e ALLOWED_HOSTS=localhost,127.0.0.1 \
-  -e SENTRY_DSN=your-sentry-dsn \
+docker run --rm --name oc-lettings \
+  --platform linux/amd64 \
+  --env-file .env \
+  -p 8000:8000 \
   siripo92/oc-lettings:latest
 ```
 
-Puis ouvrez `http://localhost:8000` dans votre navigateur.
+- `--rm` : supprime le conteneur dès qu'il s'arrête (évite l'accumulation de
+  conteneurs `Exited` dans Docker Desktop).
+- `--name oc-lettings` : nom fixe ; un second `docker run` échouera proprement
+  au lieu de créer `great_albattani`, `elated_elion`, etc.
+- `--env-file .env` : injecte les variables ; le `.env` de l'hôte n'est **pas**
+  lu automatiquement par le conteneur.
+
+#### Option 2 — `docker compose` (encore plus court)
+
+Le repository contient un `docker-compose.yml` prêt à l'emploi. Une fois `.env`
+en place :
+
+```bash
+docker compose up
+```
+
+Pour arrêter et nettoyer :
+
+```bash
+docker compose down
+```
+
+#### Nettoyer d'anciens conteneurs
+
+Si vous avez déjà lancé `docker run` plusieurs fois sans `--rm`, des conteneurs
+arrêtés restent visibles dans Docker Desktop. Pour tout supprimer d'un coup :
+
+```bash
+docker ps -a --filter ancestor=siripo92/oc-lettings:latest -q | xargs -r docker rm
+```
