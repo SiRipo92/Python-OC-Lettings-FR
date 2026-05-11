@@ -1,0 +1,12 @@
+services:
+  web:
+    image: siripo92/oc-lettings:latest
+    # Required on ARM Macs (M-series); the image is built for linux/amd64
+    # and runs under emulation. Harmless on linux/amd64 hosts.
+    platform: linux/amd64
+    container_name: oc-lettings
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: "no"

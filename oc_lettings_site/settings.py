@@ -170,8 +170,10 @@ LOGGING = {
 }
 
 # Sentry Initialization
+# Guard against placeholder values like "your-sentry-dsn" leaking in via -e
+# flags or partially-filled .env files — those are truthy but unparseable.
 SENTRY_DSN = config('SENTRY_DSN', default=None)
-if SENTRY_DSN:
+if SENTRY_DSN and SENTRY_DSN.startswith(('http://', 'https://')):
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
