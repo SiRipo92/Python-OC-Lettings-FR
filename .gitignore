@@ -2,6 +2,7 @@
 *.pyc
 venv
 .venv
+.idea/*
 
 # OS files
 .DS_Store

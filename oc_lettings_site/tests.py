@@ -36,6 +36,17 @@ def test_index(client):
     assert b'Welcome to Holiday Homes' in response.content
 
 
+def test_index_links_to_lettings_and_profiles(client):
+    """
+    The homepage exposes navigation to the lettings and profiles sections
+    so users can reach both apps. Guards against accidental URL/template
+    drift breaking the entry points to the rest of the site.
+    """
+    response = client.get('/')
+    assert b'/lettings/' in response.content
+    assert b'/profiles/' in response.content
+
+
 @override_settings(DEBUG=False)
 def test_error_404_view(client):
     """

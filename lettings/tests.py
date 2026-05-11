@@ -76,6 +76,32 @@ def test_lettings_list_view(client):
 
 
 @pytest.mark.django_db
+def test_lettings_list_view_context_contains_all_lettings(client):
+    """
+    The list view's context exposes every Letting in the database under
+    'lettings_list'. Confirms the view passes data to the template, not
+    just that the page renders.
+    """
+    address = Address.objects.create(
+        number=1, street='A', city='C', state='CA',
+        zip_code=10000, country_iso_code='USA'
+    )
+    Letting.objects.create(title='First', address=address)
+    Letting.objects.create(
+        title='Second',
+        address=Address.objects.create(
+            number=2, street='B', city='C', state='CA',
+            zip_code=10001, country_iso_code='USA'
+        )
+    )
+    response = client.get('/lettings/')
+    assert 'lettings_list' in response.context
+    assert response.context['lettings_list'].count() == 2
+    assert b'First' in response.content
+    assert b'Second' in response.content
+
+
+@pytest.mark.django_db
 def test_lettings_detail_view(client):
     """
     GET /lettings/<id>/ returns 200, renders letting.html, and displays
@@ -100,3 +126,31 @@ def test_lettings_detail_view(client):
     assert 'lettings/letting.html' in [t.name for t in response.templates]
     assert b'Test Letting' in response.content
     assert b'Test Street' in response.content
+
+
+@pytest.mark.django_db
+def test_lettings_detail_view_context_keys(client):
+    """
+    Detail view exposes 'title' and 'address' in its template context, matching
+    the keys the view function defines. Guards against future refactors that
+    silently rename or drop those context keys.
+    """
+    address = Address.objects.create(
+        number=10, street='Oak', city='Town', state='CA',
+        zip_code=12345, country_iso_code='USA'
+    )
+    letting = Letting.objects.create(title='Cottage', address=address)
+    response = client.get(f'/lettings/{letting.id}/')
+    assert response.context['title'] == 'Cottage'
+    assert response.context['address'] == address
+
+
+@pytest.mark.django_db
+def test_lettings_detail_view_missing_id_raises(client):
+    """
+    Requesting a letting that doesn't exist exercises the Letting.DoesNotExist
+    branch of the view (lines 48-50). The view re-raises after logging, which
+    Django translates into a 500 response in test mode.
+    """
+    with pytest.raises(Letting.DoesNotExist):
+        client.get('/lettings/9999/')
